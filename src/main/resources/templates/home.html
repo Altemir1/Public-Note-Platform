@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout('Welcome to Public Notes', ~{::div})}">
+<body>
+    <div>
+        <div class="text-center py-5">
+            <h1 class="display-4 mb-4">Welcome to Public Notes</h1>
+            <p class="lead mb-4">Share your thoughts with the world, discover ideas from others.</p>
+            
+            <div class="row justify-content-center">
+                <div class="col-md-5">
+                    <div class="card shadow-sm">
+                        <div class="card-body p-4">
+                            <div class="text-center mb-4">
+                                <h3 class="h5 mb-3">New to Public Notes?</h3>
+                                <p class="text-muted small mb-3">Create an account to start sharing your notes.</p>
+                                <a th:href="@{/user/register}" class="btn btn-primary w-75">Register Now</a>
+                            </div>
+                            <hr>
+                            <div class="text-center">
+                                <h3 class="h5 mb-3">Already a Member?</h3>
+                                <p class="text-muted small mb-3">Sign in to continue sharing notes.</p>
+                                <a th:href="@{/user/login}" class="btn btn-outline-primary w-75">Sign In</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mt-5 pt-4 justify-content-center">
+                <div class="col-md-3">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center">
+                            <div class="display-5 mb-3">📝</div>
+                            <h3 class="h6 mb-2">Share Notes</h3>
+                            <p class="text-muted small">Create and share your thoughts with others.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center">
+                            <div class="display-5 mb-3">🔍</div>
+                            <h3 class="h6 mb-2">Discover</h3>
+                            <p class="text-muted small">Search notes using tags that interest you.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center">
+                            <div class="display-5 mb-3">👥</div>
+                            <h3 class="h6 mb-2">Connect</h3>
+                            <p class="text-muted small">Find notes from other users.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <p class="text-muted small">
+                    You can also <a th:href="@{/notes/search}">search notes</a> or 
+                    <a th:href="@{/notes/user}">browse user notes</a> without an account.
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

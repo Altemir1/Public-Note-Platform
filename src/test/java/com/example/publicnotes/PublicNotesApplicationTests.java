@@ -1,13 +1,12 @@
-package com.example.notes;
+package com.example.publicnotes;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class NotesApplicationTests {
+class PublicNotesApplicationTests {
 
-	@Test
-	void contextLoads() {
-	}
-
-}
+    @Test
+    void contextLoads() {
+    }
+} 

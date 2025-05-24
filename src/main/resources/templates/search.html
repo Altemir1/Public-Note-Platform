@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout('Search Notes', ~{::div})}">
+<body>
+    <div>
+        <style>
+            .note-card {
+                height: 200px;
+                overflow: hidden;
+                cursor: pointer;
+                transition: transform 0.2s;
+            }
+            .note-card:hover {
+                transform: translateY(-2px);
+            }
+            .note-text {
+                height: 100px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                display: -webkit-box;
+                -webkit-line-clamp: 4;
+                -webkit-box-orient: vertical;
+            }
+            .tag-list {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+        </style>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Search Notes by Tag</h2>
+        </div>
+        
+        <form th:action="@{/notes/search}" method="post" class="mb-4">
+            <div class="input-group">
+                <input type="text" class="form-control" name="tag" placeholder="Enter tag to search" 
+                       th:value="${searchedTag}" required>
+                <button type="submit" class="btn btn-primary">Search</button>
+            </div>
+        </form>
+
+        <div th:if="${notes != null}">
+            <h3 th:if="${searchedTag}" class="mb-4">
+                Results for tag: <span class="badge bg-secondary" th:text="${searchedTag}"></span>
+            </h3>
+
+            <div th:if="${notes.empty}" class="alert alert-info">
+                No notes found with this tag.
+            </div>
+
+            <div class="row g-4">
+                <div th:each="note : ${notes}" class="col-md-4">
+                    <div class="card note-card h-100 shadow-sm" th:data-id="${note.id}" onclick="viewNote(this)">
+                        <div class="card-body">
+                            <p class="note-text mb-3" th:text="${note.text}"></p>
+                            <p class="card-subtitle text-muted small mb-2">
+                                By: <span th:text="${note.email}"></span>
+                            </p>
+                            <div class="tag-list">
+                                <span th:each="tag : ${note.tags}" 
+                                      class="badge bg-secondary me-1" 
+                                      th:text="${tag}"></span>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <small class="text-muted" th:text="${#dates.format(note.createdAt, 'MMM dd, yyyy')}">Date</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- View Note Modal -->
+        <div class="modal fade" id="viewNoteModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Note Details</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p id="viewNoteText" class="mb-3"></p>
+                        <p class="text-muted small mb-3">By: <span id="viewNoteAuthor"></span></p>
+                        <div id="viewNoteTags" class="mb-3"></div>
+                        <small id="viewNoteDate" class="text-muted"></small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function viewNote(element) {
+                const noteId = element.getAttribute('data-id');
+                
+                fetch(`/notes/view/${noteId}`)
+                    .then(response => response.json())
+                    .then(note => {
+                        document.getElementById('viewNoteText').textContent = note.text;
+                        document.getElementById('viewNoteAuthor').textContent = note.email;
+                        document.getElementById('viewNoteTags').innerHTML = note.tags
+                            .map(tag => `<span class="badge bg-secondary me-1">${tag}</span>`)
+                            .join('');
+                        document.getElementById('viewNoteDate').textContent = 
+                            new Date(note.createdAt).toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                            });
+                        new bootstrap.Modal(document.getElementById('viewNoteModal')).show();
+                    });
+            }
+        </script>
+    </div>
+</body>
+</html> 
