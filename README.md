@@ -97,9 +97,3 @@ Monitor application health and performance through HAProxy statistics dashboard:
 3. Commit changes
 4. Push to branch
 5. Submit pull request
-
-## License
-[Your License]
-
-## Contact
-[Your Contact Information]

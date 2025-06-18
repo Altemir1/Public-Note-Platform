@@ -1,0 +1,163 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: public-notes
+---
+# Redis Deployment & Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: public-notes
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis
+          image: redis-image
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 6379
+          volumeMounts:
+            - name: redis-storage
+              mountPath: /data
+      volumes:
+        - name: redis-storage
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: public-notes
+spec:
+  selector:
+    app: redis
+  ports:
+    - port: 6379
+      targetPort: 6379
+  clusterIP: None
+---
+# App1 Deployment & Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app1
+  namespace: public-notes
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app1
+  template:
+    metadata:
+      labels:
+        app: app1
+    spec:
+      containers:
+        - name: app1
+          image: cloud_computing_project_2025_summer-app
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_REDIS_HOST
+              value: redis
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app1
+  namespace: public-notes
+spec:
+  selector:
+    app: app1
+  ports:
+    - port: 8080
+      targetPort: 8080
+---
+# App2 Deployment & Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app2
+  namespace: public-notes
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app2
+  template:
+    metadata:
+      labels:
+        app: app2
+    spec:
+      containers:
+        - name: app2
+          image: cloud_computing_project_2025_summer-app
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_REDIS_HOST
+              value: redis
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app2
+  namespace: public-notes
+spec:
+  selector:
+    app: app2
+  ports:
+    - port: 8080
+      targetPort: 8080
+---
+# HAProxy Deployment & Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: haproxy
+  namespace: public-notes
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: haproxy
+  template:
+    metadata:
+      labels:
+        app: haproxy
+    spec:
+      containers:
+        - name: haproxy
+          image: haproxy-image
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 80
+            - containerPort: 8404
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: haproxy
+  namespace: public-notes
+spec:
+  selector:
+    app: haproxy
+  type: LoadBalancer
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+    - name: stats
+      port: 8404
+      targetPort: 8404

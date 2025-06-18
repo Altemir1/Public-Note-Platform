@@ -12,7 +12,7 @@ ENV JAVA_HOME=/usr/lib64/jvm/java-17-openjdk
 ENV PATH=$JAVA_HOME/bin:$PATH
 
 # Copy your source code
-COPY ../../ /app
+COPY . /app
 WORKDIR /app
 
 # Build the app
