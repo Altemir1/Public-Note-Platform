@@ -3,6 +3,19 @@ kind: Namespace
 metadata:
   name: public-notes
 ---
+# Redis Persistent Volume Claim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-pvc
+  namespace: public-notes
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
 # Redis Deployment & Service
 apiVersion: apps/v1
 kind: Deployment
@@ -30,7 +43,8 @@ spec:
               mountPath: /data
       volumes:
         - name: redis-storage
-          emptyDir: {}
+          persistentVolumeClaim:
+            claimName: redis-pvc
 ---
 apiVersion: v1
 kind: Service
@@ -45,24 +59,24 @@ spec:
       targetPort: 6379
   clusterIP: None
 ---
-# App1 Deployment & Service
+# Unified App Deployment with 2 replicas
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: app1
+  name: app
   namespace: public-notes
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
-      app: app1
+      app: note-app
   template:
     metadata:
       labels:
-        app: app1
+        app: note-app
     spec:
       containers:
-        - name: app1
+        - name: app
           image: cloud_computing_project_2025_summer-app
           imagePullPolicy: Never
           ports:
@@ -74,90 +88,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: app1
+  name: note-app
   namespace: public-notes
 spec:
   selector:
-    app: app1
+    app: note-app
   ports:
     - port: 8080
       targetPort: 8080
----
-# App2 Deployment & Service
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: app2
-  namespace: public-notes
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: app2
-  template:
-    metadata:
-      labels:
-        app: app2
-    spec:
-      containers:
-        - name: app2
-          image: cloud_computing_project_2025_summer-app
-          imagePullPolicy: Never
-          ports:
-            - containerPort: 8080
-          env:
-            - name: SPRING_REDIS_HOST
-              value: redis
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: app2
-  namespace: public-notes
-spec:
-  selector:
-    app: app2
-  ports:
-    - port: 8080
-      targetPort: 8080
----
-# HAProxy Deployment & Service
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: haproxy
-  namespace: public-notes
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: haproxy
-  template:
-    metadata:
-      labels:
-        app: haproxy
-    spec:
-      containers:
-        - name: haproxy
-          image: haproxy-image
-          imagePullPolicy: Never
-          ports:
-            - containerPort: 80
-            - containerPort: 8404
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: haproxy
-  namespace: public-notes
-spec:
-  selector:
-    app: haproxy
-  type: LoadBalancer
-  ports:
-    - name: http
-      port: 80
-      targetPort: 80
-    - name: stats
-      port: 8404
-      targetPort: 8404
+  type: NodePort
