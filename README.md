@@ -1,118 +1,90 @@
-# Public Note Platform – Cloud Computing Project
+# Public Note Platform – Cloud Computing Project 2025 Summer
 
 ## Overview
+This is a distributed web application for managing public notes, developed as part of a cloud computing course project. The backend is built with Java Spring Boot, Redis is used as a cache/database, and HAProxy acts as a load balancer. The system is containerized with Docker, orchestrated via Docker Compose for local testing and Kubernetes (Minikube) for deployment. All services run on custom-built images based on the OpenSUSE Leap Linux distribution.
 
-This project is a distributed web application for managing public notes. It uses Java Spring Boot for the backend, Redis for caching, and HAProxy for load balancing. The infrastructure is containerized using Docker and orchestrated with Docker Compose and Kubernetes (Minikube). All images are custom-built using OpenSUSE Leap as the base.
-
----
-
-## Project Structure
-
-```
-cloud_computing_project_2025_summer/
-├── docker/
-│   ├── app/
-│   │   └── Dockerfile
-│   └── redis/
-│       ├── Dockerfile
-│       └── redis.conf
-├── docker-compose.yml
-├── haproxy.cfg
-├── src/
-│   └── main/
-│       ├── java/
-│       └── resources/
-├── pom.xml
-└── README.md
-```
-
----
 
 ## Technologies Used
-
 - Java 17, Spring Boot
-- Redis
-- HAProxy
+- Redis (custom-configured)
+- HAProxy (HTTP load balancing)
 - Docker & Docker Compose
-- Kubernetes (Minikube)
+- Kubernetes with Minikube
 - OpenSUSE Leap (base image)
 - Maven
 
----
-
 ## Prerequisites
-
 - Docker & Docker Compose
 - Java 17 & Maven
-- Minikube & kubectl (for Kubernetes)
+- Minikube & kubectl
 - Git
 
----
-
 ## Building Docker Images
+1. **Build the Spring Boot app image:**
+    ```sh
+    cd docker/app
+    docker build -t cloud_computing_project_2025_summer-app .
+    ```
+2. **Build the Redis image:**
+    ```sh
+    cd ../redis
+    docker build -t redis-image .
+    ```
 
-```bash
-# Build the app image
-cd docker/app
-docker build -t app-image:opensuse .
-
-# Build the redis image
-cd ../redis
-docker build -t redis-image:opensuse .
-```
-
----
-
-## Running with Docker Compose
-
-```bash
+## Running Locally with Docker Compose
+```sh
 cd ../../
 docker-compose up --build
 ```
 
-- The HAProxy load balancer will be available on `http://localhost:80`
-- Redis will be available on `localhost:6379` (only accessible from your machine)
-- Two instances of the Spring Boot app will be started and load-balanced
+### Access Points
+- HAProxy load balancer: [http://localhost:80](http://localhost:80)
+- HAProxy dashboard: http://localhost:8404
+- Redis: internal only (`redis:6379`), not exposed to host
 
----
+## Architecture
+- **app1** and **app2**: Two Spring Boot containers behind HAProxy
+- **redis**: Single Redis instance, used by both apps
+- **haproxy**: Balances HTTP traffic across both app instances
 
-## Docker Compose Architecture
-
-- **haproxy**: Load balancer, exposed on all interfaces (port 80)
-- **app1/app2**: Two Spring Boot web servers, connected to both frontend and backend networks
-- **redis**: Database/cache, only accessible on the backend network and from localhost
-
----
-
-## Running with Kubernetes (Minikube)
-
-1. **Load your custom images into Minikube:**
-    ```bash
+## Deploying with Kubernetes (Minikube)
+1. **Start Minikube and load custom images:**
+    ```sh
     minikube start
-    minikube image load app-image:opensuse
-    minikube image load redis-image:opensuse
-    minikube image load haproxy-image:opensuse
+    minikube image load cloud_computing_project_2025_summer-app
+    minikube image load redis-image
+    minikube image load haproxy-image
     ```
-
 2. **Apply Kubernetes manifests:**
-    ```bash
+    ```sh
     kubectl apply -f k8s/
     ```
-
-3. **Access the services:**
-    ```bash
-    minikube service haproxy-service
-    # For Redis (from your laptop):
-    kubectl port-forward service/redis-service 6379:6379
+    This will:
+    - Create a namespace `public-notes`
+    - Deploy:
+        - Redis with persistent storage (`redis-pvc`)
+        - Spring Boot app with 2 replicas (`note-app`)
+        - Expose `note-app` via NodePort
+3. **Access the Spring Boot application:**
+    ```sh
+    minikube service note-app -n public-notes
+    ```
+4. **(Optional) Access Redis for testing:**
+    ```sh
+    kubectl port-forward service/redis 6379:6379 -n public-notes
     ```
 
----
-
 ## Notes
+- All containers are built using OpenSUSE Leap base images.
+- app1 and app2 are identical deployments for horizontal scaling.
+- Redis is isolated on the backend network (or within Kubernetes cluster).
+- HAProxy listens on port 80 and optionally 8404 for stats (if configured).
+- Kubernetes uses `imagePullPolicy: Never` to run local images loaded into Minikube.
 
-- All Docker images are built from the provided Dockerfiles using OpenSUSE Leap.
-- The backend network isolates Redis from the load balancer.
-- The database port is only bound to localhost for security.
-- For Kubernetes, `imagePullPolicy: Never` is used to ensure local images are used.
-
----
+## Summary
+| Component   | Description                                 |
+|-------------|---------------------------------------------|
+| app1, app2  | Java Spring Boot note app replicas          |
+| redis       | Redis with custom config & persistent volume|
+| haproxy     | Load balances requests to app1 and app2     |
+| Minikube    | Local Kubernetes cluster for deployment     |

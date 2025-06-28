@@ -6,7 +6,9 @@ networks:
 
 services:
   haproxy:
-    build: ./docker/haproxy
+    build:
+      context: .
+      dockerfile: docker/haproxy/Dockerfile
     ports:
       - "80:80"
       - "8404:8404"
@@ -17,7 +19,9 @@ services:
       - app2
 
   app1:
-    build: ./docker/app
+    build:
+      context: .
+      dockerfile: docker/app/Dockerfile
     networks:
       - frontend
       - backend
@@ -27,7 +31,9 @@ services:
       - redis
 
   app2:
-    build: ./docker/app
+    build:
+      context: .
+      dockerfile: docker/app/Dockerfile
     networks:
       - frontend
       - backend
@@ -38,8 +44,6 @@ services:
 
   redis:
     build: ./docker/redis
-    ports:
-      - "127.0.0.1:6379:6379"
     networks:
       - backend
     volumes:
