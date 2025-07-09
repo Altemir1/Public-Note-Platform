@@ -11,9 +11,11 @@ RUN zypper --non-interactive refresh && \
 ENV JAVA_HOME=/usr/lib64/jvm/java-17-openjdk
 ENV PATH=$JAVA_HOME/bin:$PATH
 
-# Copy your source code
-COPY . /app
+# Set working directory inside the container
 WORKDIR /app
+
+# Copy the entire project into the container
+COPY . .
 
 # Build the app
 RUN mvn clean package -DskipTests

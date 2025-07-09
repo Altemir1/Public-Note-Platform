@@ -96,4 +96,24 @@ spec:
   ports:
     - port: 8080
       targetPort: 8080
-  type: NodePort
+  type: LoadBalancer
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: publicnotes-ingress
+  namespace: public-notes
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    - host: publicnotes.test
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: note-app
+                port:
+                  number: 8080
