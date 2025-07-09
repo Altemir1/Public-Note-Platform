@@ -16,20 +16,9 @@ This is a distributed web application for managing public notes, developed as pa
 ## Prerequisites
 - Docker & Docker Compose
 - Java 17 & Maven
-- Minikube & kubectl
+- Minikube
 - Git
 
-## Building Docker Images
-1. **Build the Spring Boot app image:**
-    ```sh
-    cd docker/app
-    docker build -t cloud_computing_project_2025_summer-app .
-    ```
-2. **Build the Redis image:**
-    ```sh
-    cd ../redis
-    docker build -t redis-image .
-    ```
 
 ## Running Locally with Docker Compose
 ```sh
@@ -39,8 +28,8 @@ docker-compose up --build
 
 ### Access Points
 - HAProxy load balancer: [http://localhost:80](http://localhost:80)
-- HAProxy dashboard: http://localhost:8404
-- Redis: internal only (`redis:6379`), not exposed to host
+- HAProxy dashboard: http://localhost:8404 . To access it you need to use these credentials:
+Username: admin, Passowrd: admin.
 
 ## Architecture
 - **app1** and **app2**: Two Spring Boot containers behind HAProxy
@@ -48,31 +37,39 @@ docker-compose up --build
 - **haproxy**: Balances HTTP traffic across both app instances
 
 ## Deploying with Kubernetes (Minikube)
-1. **Start Minikube and load custom images:**
-    ```sh
-    minikube start
-    minikube image load cloud_computing_project_2025_summer-app
-    minikube image load redis-image
-    minikube image load haproxy-image
-    ```
-2. **Apply Kubernetes manifests:**
-    ```sh
-    kubectl apply -f k8s/
-    ```
-    This will:
-    - Create a namespace `public-notes`
-    - Deploy:
-        - Redis with persistent storage (`redis-pvc`)
-        - Spring Boot app with 2 replicas (`note-app`)
-        - Expose `note-app` via NodePort
-3. **Access the Spring Boot application:**
-    ```sh
-    minikube service note-app -n public-notes
-    ```
-4. **(Optional) Access Redis for testing:**
-    ```sh
-    kubectl port-forward service/redis 6379:6379 -n public-notes
-    ```
+1. Start Minikube and Ingress
+```sh
+minikube start
+minikube addons enable ingress
+```
+2. Build Images Inside minikube
+```sh
+eval $(minikube docker-env)
+
+docker build -t cloud_computing_project_2025_summer-app -f docker/app/Dockerfile .
+
+docker build -t redis-image ./docker/redis
+```
+
+3. Deploy Everything
+```sh
+kubectl apply -f k8s.yaml
+```
+
+4. Update /etc/hosts
+```sh
+sudo nano /etc/hosts
+```
+Add: 127.0.0.1 publicnotes.test
+
+5. Run the Tunnel (On separate terminal)
+```sh
+sudo minikube tunnel
+```
+
+6. Access the App
+https://publicnotes.test
+
 
 ## Notes
 - All containers are built using OpenSUSE Leap base images.
